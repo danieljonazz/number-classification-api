@@ -64,6 +64,7 @@ app.get("/api/classify-number", async (req, res) => {
 
   // Validate input (accepts integers, negatives, and floats)
   if (!number || isNaN(number)) {
+    res.setHeader("Content-Type", "application/json");
     return res.status(400).json({ number: number, error: true });
   }
 
@@ -86,6 +87,7 @@ app.get("/api/classify-number", async (req, res) => {
     fun_fact: funFact,
   };
 
+  res.setHeader("Content-Type", "application/json");
   res.status(200).json(response);
 });
 
