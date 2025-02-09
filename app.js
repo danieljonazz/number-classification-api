@@ -4,15 +4,15 @@ const axios = require("axios");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Enable CORS
+// Enable CORS (fixed typo in header name)
 app.use((req, res, next) => {
-  res.header("Access-Control-Allnow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Content-Type");
   res.header("Access-Control-Allow-Methods", "GET");
   next();
 });
 
-// Helper functions
+// Helper functions (unchanged)
 const isPrime = (n) => {
   if (n < 2) return false;
   for (let i = 2; i <= Math.sqrt(n); i++) {
@@ -58,15 +58,18 @@ const getFunFact = async (n) => {
   }
 };
 
-// API endpoint
+// Updated API endpoint with proper validation
 app.get("/api/classify-number", async (req, res) => {
   const number = req.query.number;
 
-  if (!number || !/^-?\d+$/.test(number)) {
+  // Validate input (accepts integers, negatives, and floats)
+  if (!number || isNaN(number)) {
     return res.status(400).json({ number: number, error: true });
   }
 
-  const num = parseInt(number, 10);
+  // Convert to integer (truncate decimal part)
+  const num = Math.trunc(parseFloat(number));
+
   const properties = [];
   if (isArmstrong(num)) properties.push("armstrong");
   if (num % 2 === 0) properties.push("even");
