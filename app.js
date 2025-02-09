@@ -4,15 +4,20 @@ const axios = require("axios");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Enable CORS (fixed typo in header name)
+// Force JSON responses
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Enable CORS
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Content-Type");
   res.header("Access-Control-Allow-Methods", "GET");
+  res.setHeader("Content-Type", "application/json"); // Explicitly set JSON
   next();
 });
 
-// Helper functions (unchanged)
+// Helper functions
 const isPrime = (n) => {
   if (n < 2) return false;
   for (let i = 2; i <= Math.sqrt(n); i++) {
@@ -51,26 +56,22 @@ const digitSum = (n) => {
 
 const getFunFact = async (n) => {
   try {
-    const response = await axios.get(`http://numbersapi.com/${n}/math`);
-    return response.data;
+    const response = await axios.get(`http://numbersapi.com/${n}/math?json`);
+    return response.data.text || null; // Ensure valid JSON return
   } catch (error) {
-    return "No fun fact available.";
+    return null; // Avoid non-JSON errors
   }
 };
 
-// Updated API endpoint with proper validation
+// API endpoint
 app.get("/api/classify-number", async (req, res) => {
   const number = req.query.number;
 
-  // Validate input (accepts integers, negatives, and floats)
   if (!number || isNaN(number)) {
-    res.setHeader("Content-Type", "application/json");
     return res.status(400).json({ number: number, error: true });
   }
 
-  // Convert to integer (truncate decimal part)
   const num = Math.trunc(parseFloat(number));
-
   const properties = [];
   if (isArmstrong(num)) properties.push("armstrong");
   if (num % 2 === 0) properties.push("even");
@@ -84,10 +85,9 @@ app.get("/api/classify-number", async (req, res) => {
     is_perfect: isPerfect(num),
     properties: properties,
     digit_sum: digitSum(num),
-    fun_fact: funFact,
+    fun_fact: funFact, // Now safely JSON
   };
 
-  res.setHeader("Content-Type", "application/json");
   res.status(200).json(response);
 });
 
